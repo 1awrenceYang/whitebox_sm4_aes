@@ -193,7 +193,10 @@ uint32_t encode32dia(uint32_t input, mat_GF2* A, vec_GF2& b)
 
 	return result;
 }
-
+void LookUpTableDecryptAES(char* ciphertext, char* key, char* plaintext)
+{
+	decryptAES(ciphertext, key, plaintext);
+}
 
 uint32_t decode32dia(uint32_t input, mat_GF2* A, vec_GF2& b)
 {
