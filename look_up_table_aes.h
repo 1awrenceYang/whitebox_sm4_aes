@@ -35,6 +35,6 @@ char RecoverSequence(uint32_t input, int rij);
 
 void LookUpTableEncryptAES(char* plaintext, char* key, char* ciphertext);
 
-void LookUpTableDecryptAES(char* plaintext, char* key, char* ciphertext);
+void LookUpTableDecryptAES(char* ciphertext, char* key, char* plaintext);
 
 #endif 
