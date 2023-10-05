@@ -76,7 +76,7 @@ int main()
 	TestSuccess = 1;
 	printf("\n\n");
 
-	for (int i = 0; i < 5; i++)
+	for (int i = 0; i < 1; i++)
 	{
 		for (int i = 0; i < 16; i++)
 		{
@@ -89,6 +89,15 @@ int main()
 
 		LookUpTableEncryptAES(Plaintext, Key, LookUpTableAESCiphertext);
 		LookUpTableDecryptAES(LookUpTableAESCiphertext, Key, LookUpTableAESdecryptText);
+
+		printf("Plaintext:\n");
+		print_char(Plaintext, 16);
+		printf("Key:\n");
+		print_char(Key, 16);
+		printf("Look Up Table AES Ciphertext:\n");
+		print_char(LookUpTableAESCiphertext, 16);
+		printf("Look Up Table AES Decrypted Text:\n");
+		print_char(LookUpTableAESdecryptText, 16);
 
 		if (memcmp(LookUpTableAESdecryptText, Plaintext, 16) != 0)
 		{
