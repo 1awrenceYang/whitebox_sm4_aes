@@ -205,7 +205,7 @@ This indicates that NTL is successfully installed
 **Prepare all the source code and compile them**
 
 ```
-g++ main.cpp look_up_table_aes.cpp look_up_table_sm4.cpp masked_sm4.cpp masked_aes.cpp utils.cpp -o whitebox_aes_sm4 -fpermissive -lntl -pthread -lgmp
+g++ main.cpp look_up_table_aes.cpp look_up_table_sm4.cpp masked_sm4.cpp masked_aes.cpp utils.cpp gcm.cpp -o whitebox_aes_sm4 -fpermissive -lntl -pthread -lgmp
 ```
 
 The output should be something like:
