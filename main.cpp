@@ -3,139 +3,409 @@
 #include"look_up_table_aes.h"
 #include"look_up_table_sm4.h"
 #include"utils.h"
-int main()
+#include"gcm.h"
+#define TEST_CASE (2)
+
+
+
+
+
+int main(int argc, char* argv[])
 {
-	std::default_random_engine UnitTest;
-	UnitTest.seed(time(0));
+
+#if defined(TEST_CASE) && (TEST_CASE==1)
+	uint8_t key[AES_BLOCK_SIZE] = { 0 };
+	uint8_t* input = NULL;
+	uint8_t* output = NULL;
+	size_t length = 0;
+	uint8_t* add = NULL;
+	size_t add_len = 0;
+	uint8_t iv[GCM_DEFAULT_IV_LEN] = { 0 };
+	size_t iv_len = GCM_DEFAULT_IV_LEN;
+
+#elif defined(TEST_CASE) && (TEST_CASE==2)
+	uint8_t key[AES_BLOCK_SIZE] = { 0 };
+	uint8_t input[AES_BLOCK_SIZE] = { 0 };
+	uint8_t output[AES_BLOCK_SIZE];
+	size_t length = AES_BLOCK_SIZE;
+	uint8_t* add = NULL;
+	size_t add_len = 0;
+	uint8_t iv[GCM_DEFAULT_IV_LEN] = { 0 };
+	size_t iv_len = GCM_DEFAULT_IV_LEN;
+
+#elif defined(TEST_CASE) && (TEST_CASE==3)
+	uint8_t key[AES_BLOCK_SIZE] = {
+		0xfe, 0xff, 0xe9, 0x92, 0x86, 0x65, 0x73, 0x1c, 0x6d, 0x6a, 0x8f, 0x94, 0x67, 0x30, 0x83, 0x08 };
+	size_t length = AES_BLOCK_SIZE * 4;
+	uint8_t input[AES_BLOCK_SIZE * 4] = {
+		0xd9, 0x31, 0x32, 0x25, 0xf8, 0x84, 0x06, 0xe5, 0xa5, 0x59, 0x09, 0xc5, 0xaf, 0xf5, 0x26, 0x9a,
+		0x86, 0xa7, 0xa9, 0x53, 0x15, 0x34, 0xf7, 0xda, 0x2e, 0x4c, 0x30, 0x3d, 0x8a, 0x31, 0x8a, 0x72,
+		0x1c, 0x3c, 0x0c, 0x95, 0x95, 0x68, 0x09, 0x53, 0x2f, 0xcf, 0x0e, 0x24, 0x49, 0xa6, 0xb5, 0x25,
+		0xb1, 0x6a, 0xed, 0xf5, 0xaa, 0x0d, 0xe6, 0x57, 0xba, 0x63, 0x7b, 0x39, 0x1a, 0xaf, 0xd2, 0x55 };
+	uint8_t output[AES_BLOCK_SIZE * 4];
+	size_t add_len = 0;
+	uint8_t* add = NULL;
+	size_t iv_len = GCM_DEFAULT_IV_LEN;
+	uint8_t iv[GCM_DEFAULT_IV_LEN] = {
+		0xca, 0xfe, 0xba, 0xbe, 0xfa, 0xce, 0xdb, 0xad, 0xde, 0xca, 0xf8, 0x88 };
+
+#elif defined(TEST_CASE) && (TEST_CASE==4)
+	uint8_t key[AES_BLOCK_SIZE] = {
+		0xfe, 0xff, 0xe9, 0x92, 0x86, 0x65, 0x73, 0x1c, 0x6d, 0x6a, 0x8f, 0x94, 0x67, 0x30, 0x83, 0x08 };
+	size_t length = AES_BLOCK_SIZE * 3 + GCM_DEFAULT_IV_LEN;
+	uint8_t input[AES_BLOCK_SIZE * 3 + GCM_DEFAULT_IV_LEN] = {
+		0xd9, 0x31, 0x32, 0x25, 0xf8, 0x84, 0x06, 0xe5, 0xa5, 0x59, 0x09, 0xc5, 0xaf, 0xf5, 0x26, 0x9a,
+		0x86, 0xa7, 0xa9, 0x53, 0x15, 0x34, 0xf7, 0xda, 0x2e, 0x4c, 0x30, 0x3d, 0x8a, 0x31, 0x8a, 0x72,
+		0x1c, 0x3c, 0x0c, 0x95, 0x95, 0x68, 0x09, 0x53, 0x2f, 0xcf, 0x0e, 0x24, 0x49, 0xa6, 0xb5, 0x25,
+		0xb1, 0x6a, 0xed, 0xf5, 0xaa, 0x0d, 0xe6, 0x57, 0xba, 0x63, 0x7b, 0x39 };
+	uint8_t output[AES_BLOCK_SIZE * 3 + GCM_DEFAULT_IV_LEN];
+	size_t add_len = AES_BLOCK_SIZE + 4;
+	uint8_t add[AES_BLOCK_SIZE + 4] = {
+		0xfe, 0xed, 0xfa, 0xce, 0xde, 0xad, 0xbe, 0xef, 0xfe, 0xed, 0xfa, 0xce, 0xde, 0xad, 0xbe, 0xef,
+		0xab, 0xad, 0xda, 0xd2 };
+	size_t iv_len = GCM_DEFAULT_IV_LEN;
+	uint8_t iv[GCM_DEFAULT_IV_LEN] = {
+		0xca, 0xfe, 0xba, 0xbe, 0xfa, 0xce, 0xdb, 0xad, 0xde, 0xca, 0xf8, 0x88 };
+
+#elif defined(TEST_CASE) && (TEST_CASE==5)
+	uint8_t key[AES_BLOCK_SIZE] = {
+		0xfe, 0xff, 0xe9, 0x92, 0x86, 0x65, 0x73, 0x1c, 0x6d, 0x6a, 0x8f, 0x94, 0x67, 0x30, 0x83, 0x08 };
+	size_t length = AES_BLOCK_SIZE * 3 + GCM_DEFAULT_IV_LEN;
+	uint8_t input[AES_BLOCK_SIZE * 3 + GCM_DEFAULT_IV_LEN] = {
+		0xd9, 0x31, 0x32, 0x25, 0xf8, 0x84, 0x06, 0xe5, 0xa5, 0x59, 0x09, 0xc5, 0xaf, 0xf5, 0x26, 0x9a,
+		0x86, 0xa7, 0xa9, 0x53, 0x15, 0x34, 0xf7, 0xda, 0x2e, 0x4c, 0x30, 0x3d, 0x8a, 0x31, 0x8a, 0x72,
+		0x1c, 0x3c, 0x0c, 0x95, 0x95, 0x68, 0x09, 0x53, 0x2f, 0xcf, 0x0e, 0x24, 0x49, 0xa6, 0xb5, 0x25,
+		0xb1, 0x6a, 0xed, 0xf5, 0xaa, 0x0d, 0xe6, 0x57, 0xba, 0x63, 0x7b, 0x39 };
+	uint8_t output[AES_BLOCK_SIZE * 3 + GCM_DEFAULT_IV_LEN];
+	size_t add_len = AES_BLOCK_SIZE + 4;
+	uint8_t add[AES_BLOCK_SIZE + 4] = {
+		0xfe, 0xed, 0xfa, 0xce, 0xde, 0xad, 0xbe, 0xef, 0xfe, 0xed, 0xfa, 0xce, 0xde, 0xad, 0xbe, 0xef,
+		0xab, 0xad, 0xda, 0xd2 };
+	size_t iv_len = GCM_DEFAULT_IV_LEN - 4;
+	uint8_t iv[GCM_DEFAULT_IV_LEN - 4] = {
+		0xca, 0xfe, 0xba, 0xbe, 0xfa, 0xce, 0xdb, 0xad };
+
+#elif defined(TEST_CASE) && (TEST_CASE==6)
+	uint8_t key[AES_BLOCK_SIZE] = {
+		0xfe, 0xff, 0xe9, 0x92, 0x86, 0x65, 0x73, 0x1c, 0x6d, 0x6a, 0x8f, 0x94, 0x67, 0x30, 0x83, 0x08 };
+	size_t length = AES_BLOCK_SIZE * 3 + GCM_DEFAULT_IV_LEN;
+	uint8_t input[AES_BLOCK_SIZE * 3 + GCM_DEFAULT_IV_LEN] = {
+		0xd9, 0x31, 0x32, 0x25, 0xf8, 0x84, 0x06, 0xe5, 0xa5, 0x59, 0x09, 0xc5, 0xaf, 0xf5, 0x26, 0x9a,
+		0x86, 0xa7, 0xa9, 0x53, 0x15, 0x34, 0xf7, 0xda, 0x2e, 0x4c, 0x30, 0x3d, 0x8a, 0x31, 0x8a, 0x72,
+		0x1c, 0x3c, 0x0c, 0x95, 0x95, 0x68, 0x09, 0x53, 0x2f, 0xcf, 0x0e, 0x24, 0x49, 0xa6, 0xb5, 0x25,
+		0xb1, 0x6a, 0xed, 0xf5, 0xaa, 0x0d, 0xe6, 0x57, 0xba, 0x63, 0x7b, 0x39 };
+	uint8_t output[AES_BLOCK_SIZE * 3 + GCM_DEFAULT_IV_LEN];
+	size_t add_len = AES_BLOCK_SIZE + 4;
+	uint8_t add[AES_BLOCK_SIZE + 4] = {
+		0xfe, 0xed, 0xfa, 0xce, 0xde, 0xad, 0xbe, 0xef, 0xfe, 0xed, 0xfa, 0xce, 0xde, 0xad, 0xbe, 0xef,
+		0xab, 0xad, 0xda, 0xd2 };
+	size_t iv_len = 4 * AES_BLOCK_SIZE - 4;
+	uint8_t iv[4 * AES_BLOCK_SIZE - 4] = {
+		0x93, 0x13, 0x22, 0x5d, 0xf8, 0x84, 0x06, 0xe5, 0x55, 0x90, 0x9c, 0x5a, 0xff, 0x52, 0x69, 0xaa,
+		0x6a, 0x7a, 0x95, 0x38, 0x53, 0x4f, 0x7d, 0xa1, 0xe4, 0xc3, 0x03, 0xd2, 0xa3, 0x18, 0xa7, 0x28,
+		0xc3, 0xc0, 0xc9, 0x51, 0x56, 0x80, 0x95, 0x39, 0xfc, 0xf0, 0xe2, 0x42, 0x9a, 0x6b, 0x52, 0x54,
+		0x16, 0xae, 0xdb, 0xf5, 0xa0, 0xde, 0x6a, 0x57, 0xa6, 0x37, 0xb3, 0x9b };
+#elif defined(TEST_CASE) && (TEST_CASE==7)
+	uint8_t key[AES_BLOCK_SIZE] = {
+		0xfe, 0xff, 0xe9, 0x92, 0x86, 0x65, 0x73, 0x1c, 0x6d, 0x6a, 0x8f, 0x94, 0x67, 0x30, 0x83, 0x08 };
+	size_t length = 256;
+	uint8_t input[256] = {
+		0xd9, 0x31, 0x32, 0x25, 0xf8, 0x84, 0x06, 0xe5, 0xa5, 0x59, 0x09, 0xc5, 0xaf, 0xf5, 0x26, 0x9a,
+		0x86, 0xa7, 0xa9, 0x53, 0x15, 0x34, 0xf7, 0xda, 0x2e, 0x4c, 0x30, 0x3d, 0x8a, 0x31, 0x8a, 0x72,
+		0x1c, 0x3c, 0x0c, 0x95, 0x95, 0x68, 0x09, 0x53, 0x2f, 0xcf, 0x0e, 0x24, 0x49, 0xa6, 0xb5, 0x25,
+		0xb1, 0x6a, 0xed, 0xf5, 0xaa, 0x0d, 0xe6, 0x57, 0xba, 0x63, 0x7b, 0x39 };
+	uint8_t output[256];
+	size_t add_len = AES_BLOCK_SIZE + 4;
+	uint8_t add[AES_BLOCK_SIZE + 4] = {
+		0xfe, 0xed, 0xfa, 0xce, 0xde, 0xad, 0xbe, 0xef, 0xfe, 0xed, 0xfa, 0xce, 0xde, 0xad, 0xbe, 0xef,
+		0xab, 0xad, 0xda, 0xd2 };
+	size_t iv_len = 4 * AES_BLOCK_SIZE - 4;
+	uint8_t iv[4 * AES_BLOCK_SIZE - 4] = {
+		0x93, 0x13, 0x22, 0x5d, 0xf8, 0x84, 0x06, 0xe5, 0x55, 0x90, 0x9c, 0x5a, 0xff, 0x52, 0x69, 0xaa,
+		0x6a, 0x7a, 0x95, 0x38, 0x53, 0x4f, 0x7d, 0xa1, 0xe4, 0xc3, 0x03, 0xd2, 0xa3, 0x18, 0xa7, 0x28,
+		0xc3, 0xc0, 0xc9, 0x51, 0x56, 0x80, 0x95, 0x39, 0xfc, 0xf0, 0xe2, 0x42, 0x9a, 0x6b, 0x52, 0x54,
+		0x16, 0xae, 0xdb, 0xf5, 0xa0, 0xde, 0x6a, 0x57, 0xa6, 0x37, 0xb3, 0x9b };
+#endif
+
+	uint8_t tag[16] = { 0 };
+	size_t tag_len = 16;
+
+	encryption_gcm_whitebox(key,
+		iv, iv_len,
+		add, add_len,
+		input, length,
+		output,
+		tag, tag_len, encryptSM4);
+
+	decryption_gcm_whitebox(key,
+		iv, iv_len,
+		add, add_len,
+		tag, tag_len,
+		output, length,
+		input, encryptSM4);
+
+		std::default_random_engine UnitTest;
+		UnitTest.seed(time(0));
 	
 
-	char Plaintext[16] = { 0x01,0x23,0x45,0x67,0x89 ,0xab,0xcd,0xef,0xfe,0xdc,0xba,0x98,0x76,0x54,0x32,0x10 };
-	char Key[16] = { 0x01,0x23,0x45,0x67,0x89 ,0xab,0xcd,0xef,0xfe,0xdc,0xba,0x98,0x76,0x54,0x32,0x10 };
+		unsigned char Plaintext[16] = { 0x01,0x23,0x45,0x67,0x89 ,0xab,0xcd,0xef,0xfe,0xdc,0xba,0x98,0x76,0x54,0x32,0x10 };
+		unsigned char Key[16] = { 0x01,0x23,0x45,0x67,0x89 ,0xab,0xcd,0xef,0xfe,0xdc,0xba,0x98,0x76,0x54,0x32,0x10 };
 
-	char BooleanCircuitSM4Ciphertext[16] = { 0 };
-	char BooleanCircuitAESCiphertext[16] = { 0 };
-	char BooleanCircuitSM4decryptText[16] = { 0 };
-	char BooleanCircuitAESdecryptText[16] = { 0 };
+		unsigned char BooleanCircuitSM4Ciphertext[16] = { 0 };
+		unsigned char BooleanCircuitAESCiphertext[16] = { 0 };
+		unsigned char BooleanCircuitSM4decryptText[16] = { 0 };
+		unsigned char BooleanCircuitAESdecryptText[16] = { 0 };
 
-	char LookUpTableAESCiphertext[16] = { 0 };
-	char LookUpTableSM4Ciphertext[16] = { 0 };
-	char LookUpTableAESdecryptText[16] = { 0 };
-	char LookUpTableSM4decryptText[16] = { 0 };
+		unsigned char LookUpTableAESCiphertext[16] = { 0 };
+		unsigned char LookUpTableSM4Ciphertext[16] = { 0 };
+		unsigned char LookUpTableAESdecryptText[16] = { 0 };
+		unsigned char LookUpTableSM4decryptText[16] = { 0 };
 
-	int TestSuccess = 1;
+		int TestSuccess = 1;
 
-	for (int i = 0; i < 1000; i++)
-	{
-		for (int i = 0; i < 16; i++)
+		for (int i = 0; i < 1000; i++)
 		{
-			Plaintext[i] = UnitTest() % 0xff;
-			Key[i] = UnitTest() % 0xff;
+			for (int j = 0; j < 16; j++)
+			{
+				Plaintext[j] = UnitTest() % 0xff;
+				Key[j] = UnitTest() % 0xff;
+			}
+
+			void (*encryptAESptr)(char*, char*, char*) = NULL;
+			encryptAESptr = encryptAES;
+			(*encryptAESptr)((char*)Plaintext, (char*)Key, (char*)BooleanCircuitAESCiphertext);
+
+			encryptSM4((char*)Plaintext, (char*)Key, (char*)BooleanCircuitSM4Ciphertext);
+			decryptSM4((char*)BooleanCircuitSM4Ciphertext, (char*)Key, (char*)BooleanCircuitSM4decryptText);
+
+			//encryptAES(Plaintext, Key, BooleanCircuitAESCiphertext);
+			decryptAES((char*)BooleanCircuitAESCiphertext, (char*)Key, (char*)BooleanCircuitAESdecryptText);
+
+
+
+			if (memcmp(BooleanCircuitSM4decryptText, Plaintext, 16) != 0)
+			{
+				printf("Boolean Circuit AES Test Failed\n");
+				TestSuccess = 0;
+			}
+
+			if (memcmp(BooleanCircuitAESdecryptText, Plaintext, 16) != 0)
+			{
+				printf("Boolean Circuit SM4 Test Failed\n");
+				TestSuccess = 0;
+			}
+
+			if (!TestSuccess)break;
 		}
-
-		encryptSM4(Plaintext, Key, BooleanCircuitSM4Ciphertext);
-		decryptSM4(BooleanCircuitSM4Ciphertext, Key, BooleanCircuitSM4decryptText);
-
-		encryptAES(Plaintext, Key, BooleanCircuitAESCiphertext);
-		decryptAES(BooleanCircuitAESCiphertext, Key, BooleanCircuitAESdecryptText);
-
-		if (memcmp(BooleanCircuitSM4decryptText, Plaintext, 16) != 0)
+		if (TestSuccess)
 		{
-			printf("Boolean Circuit AES Test Failed\n");
-			TestSuccess = 0;
-		}
+			printf("Plaintext:\n");
+			print_char((char*)Plaintext, 16);
+			printf("Key:\n");
+			print_char((char*)Key, 16);
+			printf("Boolean Circuit SM4 Ciphertext:\n");
+			print_char((char*)BooleanCircuitSM4Ciphertext, 16);
+			printf("Boolean Circuit SM4 Decrypted Text:\n");
+			print_char((char*)BooleanCircuitSM4decryptText, 16);
 
-		if (memcmp(BooleanCircuitAESdecryptText, Plaintext, 16) != 0)
+			printf("Boolean Circuit AES Ciphertext:\n");
+			print_char((char*)BooleanCircuitAESCiphertext, 16);
+			printf("Boolean Circuit AES Decrypted Text:\n");
+			print_char((char*)BooleanCircuitAESdecryptText, 16);
+
+			printf("---------------------------------Boolean Circuit Test Successful---------------------------------\n");
+		}
+		else
+			printf("---------------------------------Boolean Circuit Test Failed---------------------------------\n");
+
+		TestSuccess = 1;
+		printf("\n\n");
+
+		for (int i = 0; i < 1; i++)
 		{
-			printf("Boolean Circuit SM4 Test Failed\n");
-			TestSuccess = 0;
+			for (int i = 0; i < 16; i++)
+			{
+				Plaintext[i] = UnitTest() % 0xff;
+				Key[i] = UnitTest() % 0xff;
+			}
+
+			LookUpTableEncryptSM4((char*)Plaintext, (char*)Key, (char*)LookUpTableSM4Ciphertext);
+			LookUpTableDecryptSM4((char*)LookUpTableSM4Ciphertext, (char*)Key, (char*)LookUpTableSM4decryptText);
+
+			LookUpTableEncryptAES((char*)Plaintext, (char*)Key, (char*)LookUpTableAESCiphertext);
+			LookUpTableDecryptAES((char*)LookUpTableAESCiphertext, (char*)Key, (char*)LookUpTableAESdecryptText);
+
+			if (memcmp(LookUpTableAESdecryptText, Plaintext, 16) != 0)
+			{
+				printf("Look Up Table AES Test Failed\n");
+				TestSuccess = 0;
+			}
+
+			if (memcmp(LookUpTableSM4decryptText, Plaintext, 16) != 0)
+			{
+				printf("Look Up Table SM4 Test Failed\n");
+				TestSuccess = 0;
+			}
+
+			if (!TestSuccess)break;
 		}
-
-		if (!TestSuccess)break;
-	}
-	if (TestSuccess)
-	{
-		printf("Plaintext:\n");
-		print_char(Plaintext, 16);
-		printf("Key:\n");
-		print_char(Key, 16);
-		printf("Boolean Circuit SM4 Ciphertext:\n");
-		print_char(BooleanCircuitSM4Ciphertext, 16);
-		printf("Boolean Circuit SM4 Decrypted Text:\n");
-		print_char(BooleanCircuitSM4decryptText, 16);
-
-		printf("Boolean Circuit AES Ciphertext:\n");
-		print_char(BooleanCircuitAESCiphertext, 16);
-		printf("Boolean Circuit AES Decrypted Text:\n");
-		print_char(BooleanCircuitAESdecryptText, 16);
-
-		printf("---------------------------------Boolean Circuit Test Successful---------------------------------\n");
-	}
-	else
-		printf("---------------------------------Boolean Circuit Test Failed---------------------------------\n");
-
-	TestSuccess = 1;
-	printf("\n\n");
-
-	for (int i = 0; i < 1; i++)
-	{
-		for (int i = 0; i < 16; i++)
+		if (TestSuccess)
 		{
-			Plaintext[i] = UnitTest() % 0xff;
-			Key[i] = UnitTest() % 0xff;
+			printf("Plaintext:\n");
+			print_char((char*)Plaintext, 16);
+			printf("Key:\n");
+			print_char((char*)Key, 16);
+			printf("Look Up Table SM4 Ciphertext:\n");
+			print_char((char*)LookUpTableSM4Ciphertext, 16);
+			printf("Look Up Table SM4 Decrypted Text:\n");
+			print_char((char*)LookUpTableSM4decryptText, 16);
+
+			printf("Look Up Table AES Ciphertext:\n");
+			print_char((char*)LookUpTableAESCiphertext, 16);
+			printf("Look Up Table AES Decrypted Text:\n");
+			print_char((char*)LookUpTableAESdecryptText, 16);
+
+			printf("---------------------------------Look Up Table Test Successful---------------------------------\n");
 		}
-
-		LookUpTableEncryptSM4(Plaintext, Key, LookUpTableSM4Ciphertext);
-		LookUpTableDecryptSM4(LookUpTableSM4Ciphertext, Key, LookUpTableSM4decryptText);
-
-		LookUpTableEncryptAES(Plaintext, Key, LookUpTableAESCiphertext);
-		LookUpTableDecryptAES(LookUpTableAESCiphertext, Key, LookUpTableAESdecryptText);
-
-		printf("Plaintext:\n");
-		print_char(Plaintext, 16);
-		printf("Key:\n");
-		print_char(Key, 16);
-		printf("Look Up Table AES Ciphertext:\n");
-		print_char(LookUpTableAESCiphertext, 16);
-		printf("Look Up Table AES Decrypted Text:\n");
-		print_char(LookUpTableAESdecryptText, 16);
-
-		if (memcmp(LookUpTableAESdecryptText, Plaintext, 16) != 0)
-		{
-			printf("Look Up Table AES Test Failed\n");
-			TestSuccess = 0;
-		}
-
-		if (memcmp(LookUpTableSM4decryptText, Plaintext, 16) != 0)
-		{
-			printf("Look Up Table SM4 Test Failed\n");
-			TestSuccess = 0;
-		}
-
-		if (!TestSuccess)break;
-	}
-	if (TestSuccess)
-	{
-		printf("Plaintext:\n");
-		print_char(Plaintext, 16);
-		printf("Key:\n");
-		print_char(Key, 16);
-		printf("Look Up Table SM4 Ciphertext:\n");
-		print_char(LookUpTableSM4Ciphertext, 16);
-		printf("Look Up Table SM4 Decrypted Text:\n");
-		print_char(LookUpTableSM4decryptText, 16);
-
-		printf("Look Up Table AES Ciphertext:\n");
-		print_char(LookUpTableAESCiphertext, 16);
-		printf("Look Up Table AES Decrypted Text:\n");
-		print_char(LookUpTableAESdecryptText, 16);
-
-		printf("---------------------------------Look Up Table Test Successful---------------------------------\n");
-	}
-	else
-		printf("---------------------------------Look Up Table Test Failed---------------------------------\n");
+		else
+			printf("---------------------------------Look Up Table Test Failed---------------------------------\n");
 
 
+
+	return 0;
 }
+
+
+//int main()
+//{
+//	std::default_random_engine UnitTest;
+//	UnitTest.seed(time(0));
+//	
+//
+//	char Plaintext[16] = { 0x01,0x23,0x45,0x67,0x89 ,0xab,0xcd,0xef,0xfe,0xdc,0xba,0x98,0x76,0x54,0x32,0x10 };
+//	char Key[16] = { 0x01,0x23,0x45,0x67,0x89 ,0xab,0xcd,0xef,0xfe,0xdc,0xba,0x98,0x76,0x54,0x32,0x10 };
+//
+//	char BooleanCircuitSM4Ciphertext[16] = { 0 };
+//	char BooleanCircuitAESCiphertext[16] = { 0 };
+//	char BooleanCircuitSM4decryptText[16] = { 0 };
+//	char BooleanCircuitAESdecryptText[16] = { 0 };
+//
+//	char LookUpTableAESCiphertext[16] = { 0 };
+//	char LookUpTableSM4Ciphertext[16] = { 0 };
+//	char LookUpTableAESdecryptText[16] = { 0 };
+//	char LookUpTableSM4decryptText[16] = { 0 };
+//
+//	int TestSuccess = 1;
+//
+//	for (int i = 0; i < 1000; i++)
+//	{
+//		for (int j = 0; j < 16; j++)
+//		{
+//			Plaintext[j] = UnitTest() % 0xff;
+//			Key[j] = UnitTest() % 0xff;
+//		}
+//
+//		void (*encryptAESptr)(char*, char*, char*) = NULL;
+//		encryptAESptr = encryptAES;
+//		(*encryptAESptr)(Plaintext, Key, BooleanCircuitAESCiphertext);
+//
+//		encryptSM4(Plaintext, Key, BooleanCircuitSM4Ciphertext);
+//		decryptSM4(BooleanCircuitSM4Ciphertext, Key, BooleanCircuitSM4decryptText);
+//
+//		//encryptAES(Plaintext, Key, BooleanCircuitAESCiphertext);
+//		decryptAES(BooleanCircuitAESCiphertext, Key, BooleanCircuitAESdecryptText);
+//
+//
+//
+//		if (memcmp(BooleanCircuitSM4decryptText, Plaintext, 16) != 0)
+//		{
+//			printf("Boolean Circuit AES Test Failed\n");
+//			TestSuccess = 0;
+//		}
+//
+//		if (memcmp(BooleanCircuitAESdecryptText, Plaintext, 16) != 0)
+//		{
+//			printf("Boolean Circuit SM4 Test Failed\n");
+//			TestSuccess = 0;
+//		}
+//
+//		if (!TestSuccess)break;
+//	}
+//	if (TestSuccess)
+//	{
+//		printf("Plaintext:\n");
+//		print_char(Plaintext, 16);
+//		printf("Key:\n");
+//		print_char(Key, 16);
+//		printf("Boolean Circuit SM4 Ciphertext:\n");
+//		print_char(BooleanCircuitSM4Ciphertext, 16);
+//		printf("Boolean Circuit SM4 Decrypted Text:\n");
+//		print_char(BooleanCircuitSM4decryptText, 16);
+//
+//		printf("Boolean Circuit AES Ciphertext:\n");
+//		print_char(BooleanCircuitAESCiphertext, 16);
+//		printf("Boolean Circuit AES Decrypted Text:\n");
+//		print_char(BooleanCircuitAESdecryptText, 16);
+//
+//		printf("---------------------------------Boolean Circuit Test Successful---------------------------------\n");
+//	}
+//	else
+//		printf("---------------------------------Boolean Circuit Test Failed---------------------------------\n");
+//
+//	TestSuccess = 1;
+//	printf("\n\n");
+//
+//	for (int i = 0; i < 1; i++)
+//	{
+//		for (int i = 0; i < 16; i++)
+//		{
+//			Plaintext[i] = UnitTest() % 0xff;
+//			Key[i] = UnitTest() % 0xff;
+//		}
+//
+//		LookUpTableEncryptSM4(Plaintext, Key, LookUpTableSM4Ciphertext);
+//		LookUpTableDecryptSM4(LookUpTableSM4Ciphertext, Key, LookUpTableSM4decryptText);
+//
+//		LookUpTableEncryptAES(Plaintext, Key, LookUpTableAESCiphertext);
+//		LookUpTableDecryptAES(LookUpTableAESCiphertext, Key, LookUpTableAESdecryptText);
+//
+//		if (memcmp(LookUpTableAESdecryptText, Plaintext, 16) != 0)
+//		{
+//			printf("Look Up Table AES Test Failed\n");
+//			TestSuccess = 0;
+//		}
+//
+//		if (memcmp(LookUpTableSM4decryptText, Plaintext, 16) != 0)
+//		{
+//			printf("Look Up Table SM4 Test Failed\n");
+//			TestSuccess = 0;
+//		}
+//
+//		if (!TestSuccess)break;
+//	}
+//	if (TestSuccess)
+//	{
+//		printf("Plaintext:\n");
+//		print_char(Plaintext, 16);
+//		printf("Key:\n");
+//		print_char(Key, 16);
+//		printf("Look Up Table SM4 Ciphertext:\n");
+//		print_char(LookUpTableSM4Ciphertext, 16);
+//		printf("Look Up Table SM4 Decrypted Text:\n");
+//		print_char(LookUpTableSM4decryptText, 16);
+//
+//		printf("Look Up Table AES Ciphertext:\n");
+//		print_char(LookUpTableAESCiphertext, 16);
+//		printf("Look Up Table AES Decrypted Text:\n");
+//		print_char(LookUpTableAESdecryptText, 16);
+//
+//		printf("---------------------------------Look Up Table Test Successful---------------------------------\n");
+//	}
+//	else
+//		printf("---------------------------------Look Up Table Test Failed---------------------------------\n");
+//
+//
+//}
 
 	
 
