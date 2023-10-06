@@ -4,7 +4,7 @@
 #include"look_up_table_sm4.h"
 #include"utils.h"
 #include"gcm.h"
-#define TEST_CASE (2)
+#define TEST_CASE (7)
 
 
 
@@ -127,8 +127,32 @@ int main(int argc, char* argv[])
 		0x16, 0xae, 0xdb, 0xf5, 0xa0, 0xde, 0x6a, 0x57, 0xa6, 0x37, 0xb3, 0x9b };
 #endif
 
+	unsigned char Plaintext[16] = { 0x01,0x23,0x45,0x67,0x89 ,0xab,0xcd,0xef,0xfe,0xdc,0xba,0x98,0x76,0x54,0x32,0x10 };
+	unsigned char Key[16] = { 0x01,0x23,0x45,0x67,0x89 ,0xab,0xcd,0xef,0xfe,0xdc,0xba,0x98,0x76,0x54,0x32,0x10 };
+
+	unsigned char BooleanCircuitSM4Ciphertext[16] = { 0 };
+	unsigned char BooleanCircuitAESCiphertext[16] = { 0 };
+	unsigned char BooleanCircuitSM4decryptText[16] = { 0 };
+	unsigned char BooleanCircuitAESdecryptText[16] = { 0 };
+
+	unsigned char LookUpTableAESCiphertext[16] = { 0 };
+	unsigned char LookUpTableSM4Ciphertext[16] = { 0 };
+	unsigned char LookUpTableAESdecryptText[16] = { 0 };
+	unsigned char LookUpTableSM4decryptText[16] = { 0 };
+
+	unsigned char* ModeCiphertext = NULL;
+	unsigned char* ModePlaintext = NULL;
+	unsigned char  ModeKey[16] = { 0 };
+	unsigned char  IV[16] = { 0 };
+	unsigned char* ModeDecryptText = NULL;
+
+	int TestSuccess = 1;
+
 	uint8_t tag[16] = { 0 };
 	size_t tag_len = 16;
+
+	printf("---------------------------------GCM Test---------------------------------\n");
+
 
 	encryption_gcm_whitebox(key,
 		iv, iv_len,
@@ -146,23 +170,69 @@ int main(int argc, char* argv[])
 
 		std::default_random_engine UnitTest;
 		UnitTest.seed(time(0));
-	
 
-		unsigned char Plaintext[16] = { 0x01,0x23,0x45,0x67,0x89 ,0xab,0xcd,0xef,0xfe,0xdc,0xba,0x98,0x76,0x54,0x32,0x10 };
-		unsigned char Key[16] = { 0x01,0x23,0x45,0x67,0x89 ,0xab,0xcd,0xef,0xfe,0xdc,0xba,0x98,0x76,0x54,0x32,0x10 };
+	printf("---------------------------------GCM Test Complete---------------------------------\n");
+	printf("\n\n\n");
 
-		unsigned char BooleanCircuitSM4Ciphertext[16] = { 0 };
-		unsigned char BooleanCircuitAESCiphertext[16] = { 0 };
-		unsigned char BooleanCircuitSM4decryptText[16] = { 0 };
-		unsigned char BooleanCircuitAESdecryptText[16] = { 0 };
+	unsigned int len_p = UnitTest() % 100;
+	unsigned int BytesLength = len_p * 16;
 
-		unsigned char LookUpTableAESCiphertext[16] = { 0 };
-		unsigned char LookUpTableSM4Ciphertext[16] = { 0 };
-		unsigned char LookUpTableAESdecryptText[16] = { 0 };
-		unsigned char LookUpTableSM4decryptText[16] = { 0 };
+	ModeCiphertext = (unsigned char*)malloc(BytesLength * sizeof(unsigned char));
+	ModePlaintext = (unsigned char*)malloc(BytesLength * sizeof(unsigned char));
+	ModeDecryptText = (unsigned char*)malloc(BytesLength * sizeof(unsigned char));
+	for (int i = 0; i < BytesLength; i++)
+	{
+		ModePlaintext[i] = UnitTest() % 0xff;
+	}
 
-		int TestSuccess = 1;
+	for (int i = 0; i < 16; i++)
+	{
+		ModeKey[i] = UnitTest() % 0xff;
+		IV[i] = UnitTest() % 0xff;
+	}
 
+
+	printf("---------------------------------ECB Test---------------------------------\n");
+
+	encryptECB((char*)ModePlaintext, (char*)ModeKey, (char*)ModeCiphertext, BytesLength, encryptAES);
+	decryptECB((char*)ModeCiphertext, (char*)ModeKey, (char*)ModeDecryptText, BytesLength, decryptAES);
+
+	printf("ECB First 16 bytes Plaintext\n");
+	print_char((char*)ModePlaintext, 16);
+	printf("ECB First 16 bytes Ciphertext\n");
+	print_char((char*)ModeCiphertext, 16);
+	printf("ECB First 16 bytes Decrypted Text\n");
+	print_char((char*)ModeDecryptText, 16);
+
+
+	if (memcmp((char*)ModePlaintext, (char*)ModeDecryptText, BytesLength) != 0)
+		printf("ECB Test Failed\n");
+	else
+		printf("ECB Test Successful\n");
+	printf("---------------------------------ECB Test Complete---------------------------------\n");
+	printf("\n\n\n");
+
+	printf("---------------------------------CBC Test---------------------------------\n");
+	encryptCBC((char*)ModePlaintext, (char*)ModeKey, (char*)IV, (char*)ModeCiphertext, BytesLength, encryptAES);
+	decryptCBC((char*)ModeCiphertext, (char*)ModeKey, (char*)IV, (char*)ModeDecryptText, BytesLength, decryptAES);
+
+	printf("CBC First 16 bytes Plaintext\n");
+	print_char((char*)ModePlaintext, 16);
+	printf("CBC First 16 bytes Ciphertext\n");
+	print_char((char*)ModeCiphertext, 16);
+	printf("CBC First 16 bytes Decrypted Text\n");
+	print_char((char*)ModeDecryptText, 16);
+
+	if (memcmp((char*)ModePlaintext, (char*)ModeDecryptText, BytesLength) != 0)
+		printf("CBC Test Failed\n");
+	else
+		printf("CBC Test Successful\n");
+	printf("---------------------------------CBC Test Complete---------------------------------\n");
+	printf("\n\n\n");
+		
+
+
+	printf("---------------------------------Base Enc-Dec Function Test---------------------------------\n");
 		for (int i = 0; i < 1000; i++)
 		{
 			for (int j = 0; j < 16; j++)
@@ -219,7 +289,7 @@ int main(int argc, char* argv[])
 			printf("---------------------------------Boolean Circuit Test Failed---------------------------------\n");
 
 		TestSuccess = 1;
-		printf("\n\n");
+		printf("\n\n\n");
 
 		for (int i = 0; i < 1; i++)
 		{
@@ -271,7 +341,7 @@ int main(int argc, char* argv[])
 			printf("---------------------------------Look Up Table Test Failed---------------------------------\n");
 
 
-
+		printf("---------------------------------Base Enc-Dec Function Test Complete---------------------------------\n");
 	return 0;
 }
 
